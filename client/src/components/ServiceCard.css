@@ -1,0 +1,394 @@
+.service-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+/* Compact Variant */
+.service-card.compact {
+    padding: 1rem;
+    gap: 0.75rem;
+    border-radius: 10px;
+}
+
+.service-card.compact .icon-container {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 10px;
+}
+
+.service-card.compact .icon-wrapper svg,
+.service-card.compact .icon-placeholder svg {
+    width: 20px;
+    height: 20px;
+}
+
+.service-card.compact .service-info h3 {
+    font-size: 0.95rem;
+}
+
+.service-card.compact .service-meta {
+    font-size: 0.75rem;
+    margin-bottom: 0.4rem;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
+  border-color: var(--accent-color);
+  background-color: #243046;
+}
+
+.status-indicator {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.status-indicator.online {
+  background-color: var(--success-color);
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: pulse-green 2s infinite;
+}
+
+.status-indicator.offline {
+  background-color: var(--error-color);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-red 2s infinite;
+}
+
+.card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.2s ease;
+}
+
+.service-card:hover .card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .card-actions {
+    opacity: 1;
+    transform: translateY(0);
+    background: rgba(30, 41, 59, 0.9);
+    padding: 2px;
+    border-radius: 6px;
+  }
+}
+
+.action-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: var(--error-color);
+  border-color: var(--error-color);
+  color: white;
+}
+
+.icon-container {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.icon-placeholder {
+  color: var(--text-secondary);
+  display: flex;
+}
+
+.icon-wrapper {
+    color: var(--text-primary);
+    display: flex;
+}
+
+.brand-icon-main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 8px;
+}
+
+.brand-icon-main img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
+}
+
+.icon-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--accent-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.service-card:hover .icon-placeholder {
+  color: var(--text-primary);
+}
+
+.service-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.service-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.service-url {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-icon {
+    opacity: 0;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.service-card:hover .link-icon {
+    opacity: 1;
+}
+
+/* Service Stats Container */
+.service-stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent-color);
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.stat-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-secondary);
+    min-width: 110px;
+}
+
+.stat-label small {
+    opacity: 0.6;
+}
+
+.ml-1 { margin-left: 0.25rem; }
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar.mini {
+    height: 4px;
+    margin-top: 2px;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--accent-color);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.progress-fill.disk {
+    background-color: #f59e0b; /* Amber for disk */
+}
+
+.progress-fill.pool {
+    background-color: #06b6d4; /* Cyan for TrueNAS pools */
+}
+
+.uptime-badge {
+    align-self: flex-start;
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+}
+
+/* TrueNAS Specific */
+.truenas-pools {
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.pool-header {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pool-container {
+    margin-bottom: 0.5rem;
+}
+
+.pool-container:last-child {
+    margin-bottom: 0;
+}
+
+.pool-item {
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-primary);
+    justify-content: space-between;
+}
+
+.pool-name {
+    font-weight: 600;
+    flex: 1;
+}
+
+.pool-usage-text {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+}
+
+.pool-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.pool-status-dot.healthy { background-color: #22c55e; }
+.pool-status-dot.warning { background-color: #ef4444; }
+
+/* Uptime History */
+.uptime-history {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    align-items: flex-end;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.history-bar {
+    flex: 1;
+    border-radius: 1px;
+    background-color: var(--text-secondary);
+    height: 50%;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.history-bar.online { 
+    background-color: var(--success-color); 
+    height: 100%;
+    opacity: 0.8;
+}
+
+.history-bar.offline { 
+    background-color: var(--error-color); 
+    height: 100%;
+    opacity: 0.8;
+}
+
+.history-bar:hover {
+    opacity: 1;
+    transform: scaleY(1.2);
+}

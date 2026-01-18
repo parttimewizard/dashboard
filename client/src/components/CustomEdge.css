@@ -1,0 +1,31 @@
+.edge-delete-btn {
+  width: 24px;
+  height: 24px;
+  background: #94a3b8; /* Light Gray (Slate 400) */
+  color: #0f172a; /* Dark text for contrast */
+  border: 2px solid var(--bg-color); 
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  padding: 0;
+}
+
+/* Show button when hovering the edge path (ReactFlow group) OR the button itself */
+.react-flow__edge:hover .edge-delete-btn,
+.edge-button-container:hover .edge-delete-btn {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.edge-delete-btn:hover {
+    background-color: #ef4444; /* Red */
+    color: white;
+    transform: scale(1.2);
+    border-color: #ef4444;
+}

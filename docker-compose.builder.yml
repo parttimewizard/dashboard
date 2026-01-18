@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.prod
+    image: ${DOCKER_USER}/dashboard-server:latest
+    environment:
+      - PORT=5000
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_URL=
+    image: ${DOCKER_USER}/dashboard-client:latest

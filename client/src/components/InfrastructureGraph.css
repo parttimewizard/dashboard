@@ -1,0 +1,278 @@
+.graph-container {
+  width: 100%;
+  height: 75vh;
+  background-color: #0f172a; /* Force dark bg matching app */
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.graph-node {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px;
+  width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+  overflow: visible; /* Allow floating card to pop out */
+  transition: z-index 0s;
+  pointer-events: all; /* Ensure nodes are clickable */
+}
+
+.graph-node:hover {
+    z-index: 1000 !important;
+}
+
+/* The real fix: Target the React Flow wrapper div */
+.react-flow__node:hover {
+    z-index: 10000 !important;
+}
+
+/* Ensure the node info trigger also triggers the parent z-index */
+.react-flow__node:has(.node-info-trigger:hover) {
+    z-index: 10001 !important;
+}
+
+/* The original content that was between the search boundaries */
+.graph-node.online {
+  border-left: 3px solid var(--success-color);
+}
+
+.graph-node.offline {
+  border-left: 3px solid var(--error-color);
+}
+
+.node-icon {
+  width: 36px;
+  height: 36px;
+  background-color: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.node-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.node-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.node-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-sub {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-location-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    color: var(--accent-color);
+    background-color: rgba(59, 130, 246, 0.1);
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-top: 2px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.node-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.node-status.online {
+  background-color: var(--success-color);
+  box-shadow: 0 0 4px var(--success-color);
+}
+
+.node-status.offline {
+  background-color: var(--error-color);
+}
+
+/* Info Icon & Floating Card */
+.node-info-trigger {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #1e293b;
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-secondary);
+    cursor: help;
+    z-index: 5000; /* Higher z-index */
+    transition: all 0.2s;
+    pointer-events: all; /* Ensure click/hover works */
+}
+
+.node-info-trigger:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    transform: scale(1.1);
+}
+
+.node-floating-card {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    background: #1e293b;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    z-index: 10000; /* Even higher z-index */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.floating-header {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.floating-header strong {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.floating-cat {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.floating-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.floating-stat {
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.floating-stat svg {
+    color: var(--text-secondary);
+}
+
+.floating-type {
+    margin-top: 6px;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.text-success { color: #22c55e; }
+.text-danger { color: #ef4444; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.handle {
+  background: var(--text-secondary) !important;
+  width: 8px !important;
+  height: 8px !important;
+  border: none !important;
+}
+
+/* Location Group Node */
+.location-group-node {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed #475569;
+    border-radius: 12px;
+    background-color: transparent;
+    position: relative;
+    pointer-events: none; /* Disable interaction with the group background */
+}
+
+.location-label {
+    position: absolute;
+    top: -12px;
+    left: 12px;
+    background-color: #1e293b;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid #475569;
+    pointer-events: none; /* Let clicks pass through label */
+}
+
+/* React Flow Controls Override */
+.react-flow__controls {
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+}
+
+.react-flow__controls-button {
+  background-color: var(--card-bg) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+  border-radius: 0 !important;
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important; /* Reset global padding */
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-primary) !important;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--card-border) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor !important;
+  max-width: 14px;
+  max-height: 14px;
+}

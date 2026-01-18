@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-dashboard_db}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  api:
+    image: ${DOCKER_USER}/dashboard-server:latest
+    restart: always
+    environment:
+      - PORT=5000
+      - DATABASE_URL=postgres://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-dashboard_db}
+    depends_on:
+      - db
+
+  client:
+    image: ${DOCKER_USER}/dashboard-client:latest
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  db_data:
