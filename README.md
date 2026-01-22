@@ -17,6 +17,13 @@ A comprehensive, self-hosted dashboard for managing and monitoring home server i
 *   **SNMP Support:** Retrieve remote statistics from compatible devices.
 *   **Uptime History:** Track service availability with historical graphs and sparklines.
 
+### Notifications & Smart Alerts
+*   **Ntfy Integration:** Get instant push notifications on your phone or desktop via [ntfy.sh](https://ntfy.sh) or your own self-hosted instance.
+*   **Downtime Alerts:** Automatic notifications when a service goes offline or recovers.
+*   **Resource Monitoring:** Configurable RAM usage threshold alerts (e.g., get notified when a VM exceeds 90% memory usage).
+*   **Smart Alerting:** Intelligent notification logic with hysteresis to prevent alert fatigue and duplicate notifications.
+*   **Secure Auth:** Support for both Token-based and Basic (Username/Password) authentication for private notification servers.
+
 ### Visualization & UX
 *   **Infrastructure Graph:** Interactive topology view with nested zones and floating info cards.
 *   **Modern UI:** Dark theme, glassmorphism design, and responsive layout.

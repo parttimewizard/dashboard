@@ -1,10 +1,72 @@
-import React, { useState, useRef } from 'react';
-import { X, Download, Upload, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Download, Upload, AlertTriangle, CheckCircle2, Bell, TestTube } from 'lucide-react';
 import './ServiceFormModal.css'; // Re-use styles
 
 const SettingsModal = ({ isOpen, onClose, onRestoreSuccess }) => {
     const [status, setStatus] = useState(null); // { type: 'success'|'error', msg: '' }
+    const [activeTab, setActiveTab] = useState('general');
     const fileInputRef = useRef(null);
+    const [config, setConfig] = useState({
+        ntfy_url: 'https://ntfy.sh',
+        ntfy_topic: '',
+        ntfy_token: '',
+        ntfy_username: '',
+        ntfy_password: '',
+        notifications_enabled: 'false',
+        memory_threshold: '90'
+    });
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchConfig();
+        }
+    }, [isOpen]);
+
+    const fetchConfig = async () => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+            const res = await fetch(`${apiUrl}/api/config`);
+            if (res.ok) {
+                const data = await res.json();
+                setConfig(prev => ({ ...prev, ...data }));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const saveConfig = async (key, value) => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+            await fetch(`${apiUrl}/api/config`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value })
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleConfigChange = (key, value) => {
+        setConfig(prev => ({ ...prev, [key]: value }));
+        saveConfig(key, value);
+    };
+
+    const handleTestNotification = async () => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+            const res = await fetch(`${apiUrl}/api/notifications/test`, { method: 'POST' });
+            if (res.ok) {
+                setStatus({ type: 'success', msg: 'Test notification sent!' });
+            } else {
+                const errData = await res.json();
+                throw new Error(errData.error || errData.reason || 'Failed to send test notification');
+            }
+        } catch (err) {
+            setStatus({ type: 'error', msg: err.message });
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -76,31 +138,171 @@ const SettingsModal = ({ isOpen, onClose, onRestoreSuccess }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Settings & Data</h2>
+                    <h2>Settings</h2>
                     <button className="close-btn" onClick={onClose}><X size={20} /></button>
+                </div>
+
+                <div className="tabs" style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem', paddingBottom: '0.5rem' }}>
+                    <button 
+                        className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('general')}
+                        style={{ background: 'none', border: 'none', color: activeTab === 'general' ? 'var(--primary-color)' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: activeTab === 'general' ? 'bold' : 'normal' }}
+                    >
+                        General
+                    </button>
+                    <button 
+                        className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('notifications')}
+                        style={{ background: 'none', border: 'none', color: activeTab === 'notifications' ? 'var(--primary-color)' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: activeTab === 'notifications' ? 'bold' : 'normal' }}
+                    >
+                        Notifications
+                    </button>
                 </div>
                 
                 <div className="modal-body">
-                    <div className="form-group">
-                        <label>Backup & Restore</label>
-                        <p className="description">Export your configuration to a JSON file or restore from a backup.</p>
-                        
-                        <div className="button-group" style={{marginTop: '1rem', justifyContent: 'flex-start', gap: '1rem'}}>
-                            <button className="btn-submit" onClick={handleExport}>
-                                <Download size={16} /> Export Config
-                            </button>
-                            <button className="btn-cancel" onClick={handleImportClick}>
-                                <Upload size={16} /> Import Config
-                            </button>
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                style={{display: 'none'}} 
-                                accept=".json" 
-                                onChange={handleFileChange} 
-                            />
+                    {activeTab === 'general' && (
+                        <div className="form-group">
+                            <label>Backup & Restore</label>
+                            <p className="description">Export your configuration to a JSON file or restore from a backup.</p>
+                            
+                            <div className="button-group" style={{marginTop: '1rem', justifyContent: 'flex-start', gap: '1rem'}}>
+                                <button className="btn-submit" onClick={handleExport}>
+                                    <Download size={16} /> Export Config
+                                </button>
+                                <button className="btn-cancel" onClick={handleImportClick}>
+                                    <Upload size={16} /> Import Config
+                                </button>
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    style={{display: 'none'}} 
+                                    accept=".json" 
+                                    onChange={handleFileChange} 
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <div className="notification-settings">
+                            <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Bell size={16} /> Enable Notifications
+                                    </label>
+                                    <p className="description">Receive alerts via ntfy.sh when services go down.</p>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={config.notifications_enabled === 'true'}
+                                        onChange={(e) => handleConfigChange('notifications_enabled', String(e.target.checked))}
+                                    />
+                                    <span className="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' }}>
+                                <div>
+                                    <label>Use Self-Hosted Server</label>
+                                    <p className="description">Toggle to use your own ntfy instance instead of the public one.</p>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={config.ntfy_url !== 'https://ntfy.sh'}
+                                        onChange={(e) => {
+                                            const shouldUseCustom = e.target.checked;
+                                            handleConfigChange('ntfy_url', shouldUseCustom ? 'https://' : 'https://ntfy.sh');
+                                        }}
+                                    />
+                                    <span className="slider round"></span>
+                                </label>
+                            </div>
+
+                            {config.ntfy_url !== 'https://ntfy.sh' && (
+                                <div className="form-group">
+                                    <label>Server URL</label>
+                                    <input 
+                                        type="text" 
+                                        value={config.ntfy_url}
+                                        placeholder="https://ntfy.example.com"
+                                        onChange={(e) => handleConfigChange('ntfy_url', e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                            )}
+
+                            <div className="form-group">
+                                <label>Topic Name</label>
+                                <input 
+                                    type="text" 
+                                    value={config.ntfy_topic}
+                                    placeholder="my_secret_dashboard_topic"
+                                    onChange={(e) => handleConfigChange('ntfy_topic', e.target.value)}
+                                />
+                                <p className="description">Make sure this is unique/secret if using the public ntfy.sh server.</p>
+                            </div>
+
+                            <div style={{ margin: '1.5rem 0', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                                <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>Authentication (Optional)</label>
+                                
+                                <div className="form-group">
+                                    <label>Username</label>
+                                    <input 
+                                        type="text" 
+                                        value={config.ntfy_username || ''}
+                                        placeholder="user"
+                                        onChange={(e) => handleConfigChange('ntfy_username', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Password</label>
+                                    <input 
+                                        type="password" 
+                                        value={config.ntfy_password || ''}
+                                        placeholder="password"
+                                        onChange={(e) => handleConfigChange('ntfy_password', e.target.value)}
+                                    />
+                                </div>
+                                
+                                <div style={{ textAlign: 'center', margin: '0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>- OR -</div>
+
+                                <div className="form-group">
+                                    <label>Access Token</label>
+                                    <input 
+                                        type="password" 
+                                        value={config.ntfy_token}
+                                        placeholder="tk_..."
+                                        onChange={(e) => handleConfigChange('ntfy_token', e.target.value)}
+                                    />
+                                    <p className="description">Use a token if your server requires Bearer auth.</p>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Memory Usage Alert Threshold (%)</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <input 
+                                        type="range" 
+                                        min="50" 
+                                        max="100" 
+                                        step="5"
+                                        value={config.memory_threshold || 90}
+                                        onChange={(e) => handleConfigChange('memory_threshold', e.target.value)}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <span style={{ minWidth: '3rem', fontWeight: 'bold' }}>{config.memory_threshold || 90}%</span>
+                                </div>
+                                <p className="description">Receive a notification when a device's RAM usage exceeds this level.</p>
+                            </div>
+
+                            <button className="btn-cancel" onClick={handleTestNotification} style={{ marginTop: '1rem' }}>
+                                <TestTube size={16} /> Test Notification
+                            </button>
+                        </div>
+                    )}
                     
                     {status && (
                         <div className={`status-message ${status.type}`} style={{
@@ -118,13 +320,15 @@ const SettingsModal = ({ isOpen, onClose, onRestoreSuccess }) => {
                         </div>
                     )}
 
-                    <div className="form-group" style={{marginTop: '2rem'}}>
-                        <label>About</label>
-                        <p className="description" style={{fontSize: '0.85rem'}}>
-                            Home Server Dashboard v1.2<br/>
-                            Phase 12: Data Management
-                        </p>
-                    </div>
+                    {activeTab === 'general' && (
+                        <div className="form-group" style={{marginTop: '2rem'}}>
+                            <label>About</label>
+                            <p className="description" style={{fontSize: '0.85rem'}}>
+                                Home Server Dashboard v1.3<br/>
+                                Phase 13: Notifications & Monitoring
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

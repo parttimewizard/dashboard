@@ -101,7 +101,9 @@ const initDb = async () => {
       // Separate monitoring URL
       "ALTER TABLE services ADD COLUMN IF NOT EXISTS monitoring_url VARCHAR(255)",
       // Brand icon column
-      "ALTER TABLE services ADD COLUMN IF NOT EXISTS brand_icon VARCHAR(100)"
+      "ALTER TABLE services ADD COLUMN IF NOT EXISTS brand_icon VARCHAR(100)",
+      // Container Name for Glances/Docker
+      "ALTER TABLE services ADD COLUMN IF NOT EXISTS target_container_name VARCHAR(255)"
     ];
 
     for (const migration of migrations) {

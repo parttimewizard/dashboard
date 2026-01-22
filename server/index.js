@@ -10,6 +10,7 @@ const { checkProxmox } = require('./proxmox');
 const { checkGlances } = require('./glances');
 const { checkTrueNas } = require('./truenas');
 const snmp = require('net-snmp');
+const { sendNotification } = require('./notifier');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -57,6 +58,26 @@ app.post('/api/services/test', async (req, res) => {
         res.json(result);
     } catch (err) {
         res.status(500).json({ status: 'offline', error: err.message });
+    }
+});
+
+// Test Notification Endpoint
+app.post('/api/notifications/test', async (req, res) => {
+    try {
+        const result = await sendNotification({
+            title: 'Test Notification',
+            message: 'This is a test notification from your dashboard.',
+            priority: 3,
+            tags: ['test_tube'],
+            force: true
+        });
+        if (result.success) {
+            res.json({ success: true });
+        } else {
+            res.status(500).json({ error: result.error || result.reason });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -282,20 +303,21 @@ app.delete('/api/groups/:id', async (req, res) => {
 
 // POST new service
 app.post('/api/services', async (req, res) => {
-  const { name, url, icon, category, group_ids, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, host_id, location_id, api_key, target_node, target_vmid, monitoring_url, brand_icon } = req.body;
+  const { name, url, icon, category, group_ids, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, host_id, location_id, api_key, target_node, target_vmid, monitoring_url, brand_icon, target_container_name } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const safeHostId = host_id === '' || host_id === 'null' ? null : host_id;
     const safeLocationId = location_id === '' || location_id === 'null' ? null : location_id;
     const safeVmId = target_vmid === '' || target_vmid === 'null' ? null : target_vmid;
+    const safeContainerName = target_container_name || null;
 
     // Insert service
     const result = await client.query(
       `INSERT INTO services 
-      (name, url, icon, category, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, host_id, location_id, api_key, target_node, target_vmid, monitoring_url, brand_icon) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
-      [name, url, icon, category, is_quick_access || false, monitoring_type || 'http', snmp_host, snmp_oid, snmp_community, safeHostId, safeLocationId, api_key, target_node, safeVmId, monitoring_url, brand_icon]
+      (name, url, icon, category, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, host_id, location_id, api_key, target_node, target_vmid, monitoring_url, brand_icon, target_container_name) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
+      [name, url, icon, category, is_quick_access || false, monitoring_type || 'http', snmp_host, snmp_oid, snmp_community, safeHostId, safeLocationId, api_key, target_node, safeVmId, monitoring_url, brand_icon, safeContainerName]
     );
     const serviceId = result.rows[0].id;
 
@@ -326,21 +348,22 @@ app.post('/api/services', async (req, res) => {
 // PUT update service
 app.put('/api/services/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, url, icon, category, group_ids, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, host_id, location_id, api_key, target_node, target_vmid, monitoring_url, brand_icon } = req.body;
+  const { name, url, icon, category, group_ids, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, host_id, location_id, api_key, target_node, target_vmid, monitoring_url, brand_icon, target_container_name } = req.body;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const safeHostId = host_id === '' || host_id === 'null' ? null : host_id;
     const safeLocationId = location_id === '' || location_id === 'null' ? null : location_id;
     const safeVmId = target_vmid === '' || target_vmid === 'null' ? null : target_vmid;
+    const safeContainerName = target_container_name || null;
 
     const result = await client.query(
       `UPDATE services SET 
       name = $1, url = $2, icon = $3, category = $4, is_quick_access = $5,
       monitoring_type = $6, snmp_host = $7, snmp_oid = $8, snmp_community = $9, host_id = $10, location_id = $11,
-      api_key = $12, target_node = $13, target_vmid = $14, monitoring_url = $15, brand_icon = $16
-      WHERE id = $17 RETURNING *`,
-      [name, url, icon, category, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, safeHostId, safeLocationId, api_key, target_node, safeVmId, monitoring_url, brand_icon, id]
+      api_key = $12, target_node = $13, target_vmid = $14, monitoring_url = $15, brand_icon = $16, target_container_name = $17
+      WHERE id = $18 RETURNING *`,
+      [name, url, icon, category, is_quick_access, monitoring_type, snmp_host, snmp_oid, snmp_community, safeHostId, safeLocationId, api_key, target_node, safeVmId, monitoring_url, brand_icon, safeContainerName, id]
     );
 
     if (result.rows.length === 0) {

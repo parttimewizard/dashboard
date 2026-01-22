@@ -28,7 +28,8 @@ const ServiceFormModal = ({ isOpen, onClose, onSave, groups, locations, services
             snmp_community: initialData.snmp_community || 'public',
             api_key: initialData.api_key || '',
             target_node: initialData.target_node || '',
-            target_vmid: initialData.target_vmid || ''
+            target_vmid: initialData.target_vmid || '',
+            target_container_name: initialData.target_container_name || ''
         };
     }
     return {
@@ -48,7 +49,8 @@ const ServiceFormModal = ({ isOpen, onClose, onSave, groups, locations, services
         snmp_community: 'public',
         api_key: '',
         target_node: '',
-        target_vmid: ''
+        target_vmid: '',
+        target_container_name: ''
     };
   });
 
@@ -341,6 +343,15 @@ const ServiceFormModal = ({ isOpen, onClose, onSave, groups, locations, services
 
             {formData.monitoring_type === 'glances' && (
                 <div className="special-fields">
+                    <div className="form-group">
+                        <label>Container Name (Optional)</label>
+                        <input 
+                            type="text" 
+                            value={formData.target_container_name} 
+                            onChange={e => setFormData({...formData, target_container_name: e.target.value})} 
+                            placeholder="e.g. prowlarr (leave empty for host stats)"
+                        />
+                    </div>
                     <p className="field-hint">Glances monitoring uses the Address/URL above. Port 61208 is used by default.</p>
                 </div>
             )}

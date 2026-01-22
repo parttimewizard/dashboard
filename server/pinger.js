@@ -3,9 +3,16 @@ const snmp = require('net-snmp');
 const { checkProxmox } = require('./proxmox');
 const { checkGlances } = require('./glances');
 const { checkTrueNas } = require('./truenas');
+const { sendNotification } = require('./notifier');
+
+// Track alert states to avoid spamming (e.g., only alert once when threshold is crossed)
+const alertStates = new Map(); // serviceId -> { memoryAlertSent: boolean, status: string }
 
 const checkServices = async () => {
   try {
+    const configResult = await pool.query("SELECT * FROM app_config WHERE key = 'memory_threshold'");
+    const globalThreshold = parseInt(configResult.rows[0]?.value || '90');
+
     const result = await pool.query('SELECT * FROM services');
     const services = result.rows;
 
@@ -14,18 +21,56 @@ const checkServices = async () => {
       const result = await pingService(service);
       const latency = Date.now() - start;
 
-      const status = typeof result === 'object' ? result.status : result;
+      const newStatus = typeof result === 'object' ? result.status : result;
       const stats = typeof result === 'object' ? result.stats : null;
       
+      // 1. Status Change Detection & Notification
+      if (service.status !== 'unknown' && service.status !== newStatus) {
+          if (newStatus === 'offline') {
+              await sendNotification({
+                  title: `Service Down: ${service.name}`,
+                  message: `${service.name} is unreachable.`,
+                  priority: 5,
+                  tags: ['red_circle', 'warning']
+              });
+          } else if (newStatus === 'online' && service.status === 'offline') {
+              await sendNotification({
+                  title: `Service Recovered: ${service.name}`,
+                  message: `${service.name} is back online.`,
+                  priority: 3,
+                  tags: ['white_check_mark', 'recovery']
+              });
+          }
+      }
+
+      // 2. Resource Threshold Detection (Memory)
+      if (stats && stats.memory && stats.max_memory) {
+          const usagePercent = (stats.memory / stats.max_memory) * 100;
+          const serviceState = alertStates.get(service.id) || { memoryAlertSent: false };
+
+          if (usagePercent > globalThreshold && !serviceState.memoryAlertSent) {
+              await sendNotification({
+                  title: `Low Memory: ${service.name}`,
+                  message: `${service.name} is using ${usagePercent.toFixed(1)}% RAM.`,
+                  priority: 4, // Urgent
+                  tags: ['warning', 'memory_chip']
+              });
+              alertStates.set(service.id, { ...serviceState, memoryAlertSent: true });
+          } else if (usagePercent < (globalThreshold - 5) && serviceState.memoryAlertSent) {
+              // Reset alert state when usage drops 5% below threshold (hysteresis)
+              alertStates.set(service.id, { ...serviceState, memoryAlertSent: false });
+          }
+      }
+
       await pool.query(
           'UPDATE services SET status = $1, last_checked = NOW(), last_stats = $2 WHERE id = $3', 
-          [status, stats, service.id]
+          [newStatus, stats, service.id]
       );
 
       // Record history
       await pool.query(
           'INSERT INTO service_history (service_id, status, latency) VALUES ($1, $2, $3)',
-          [service.id, status, latency]
+          [service.id, newStatus, latency]
       );
     }
   } catch (err) {
